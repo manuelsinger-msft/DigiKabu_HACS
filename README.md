@@ -6,6 +6,9 @@ Keine Lehrer-, Klassenlisten- oder fremden Stundenplan-APIs.
 
 ## Installation
 
+Das Repository muss öffentlich zugänglich sein, damit HACS die Integration
+und ihre Manifestdateien herunterladen kann.
+
 1. In HACS unter **Benutzerdefinierte Repositories** dieses Repository
    `https://github.com/manuelsinger-msft/DigiKabu_HACS` als **Integration** hinzufügen.
 2. **DigiKabu** herunterladen und Home Assistant neu starten.
@@ -24,6 +27,10 @@ Schülerkonten sind möglich, jeweils als eigener Konfigurationseintrag.
 Identische Benutzernamen werden nicht doppelt eingerichtet. Die API dokumentiert
 keine unveränderliche Konto-ID und keine Groß-/Kleinschreibungsregeln:
 Benutzernamen werden nur an den Rändern von Leerzeichen befreit, nicht kleingeschrieben.
+
+## Lizenz
+
+Die Integration steht unter der [MIT-Lizenz](LICENSE).
 
 ## Unterstützte APIs
 
