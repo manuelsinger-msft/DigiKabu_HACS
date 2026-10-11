@@ -1,0 +1,102 @@
+{
+  "title": "DigiKabu",
+  "config": {
+    "step": {
+      "user": {
+        "title": "DigiKabu student account",
+        "description": "Enter your student login. Only documented student APIs are used. Your password is stored in Home Assistant; API tokens are kept in memory only.",
+        "data": {
+          "username": "Username",
+          "password": "Password",
+          "api_key": "API key (optional)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate DigiKabu",
+        "description": "Enter the password for the existing student account. An omitted API key keeps the previous key.",
+        "data": {
+          "password": "Password",
+          "api_key": "API key (optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "DigiKabu rejected the login.",
+      "cannot_connect": "Cannot connect to DigiKabu. Try again later.",
+      "invalid_response": "DigiKabu returned an unsupported response. See the documented response format limitations.",
+      "api_error": "The student API request failed. Check that this account has access to the student absence overview."
+    },
+    "abort": {
+      "already_configured": "This username is already configured.",
+      "reauth_successful": "Authentication updated successfully."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "absences": {"name": "Absences updated"},
+      "timetable": {"name": "Timetable updated"},
+      "exams": {"name": "Exams updated"},
+      "appointments": {"name": "Appointments updated"}
+    }
+  },
+  "exceptions": {
+    "invalid_excuse_date": {
+      "message": "An excuse must start today before 09:00 or tomorrow (Europe/Berlin). DigiKabu enforces the final restrictions."
+    },
+    "authentication_failed": {
+      "message": "DigiKabu authentication failed. Reauthenticate this account in Settings."
+    }
+  },
+  "services": {
+    "get_absences": {
+      "name": "Get absences",
+      "description": "Read the student's absence overview. Returns the unmodified JSON under data.",
+      "fields": {
+        "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."}
+      }
+    },
+    "get_timetable": {
+      "name": "Get own timetable",
+      "description": "Read only the logged-in student's timetable. Returns the unmodified JSON under data.",
+      "fields": {
+        "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."},
+        "datum": {"name": "Start date and time", "description": "Optional ISO datetime; omitted uses DigiKabu's default."},
+        "anzahl": {"name": "Number of days", "description": "Positive number of days from the start date."}
+      }
+    },
+    "get_exams": {
+      "name": "Get exams",
+      "description": "Read the logged-in student's exams. Returns the unmodified JSON under data.",
+      "fields": {
+        "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."},
+        "monat": {"name": "Month", "description": "-1 means current month; otherwise 1 to 12."}
+      }
+    },
+    "get_appointments": {
+      "name": "Get appointments",
+      "description": "Read appointments for the student. No teacher department selector is used. Returns the unmodified JSON under data.",
+      "fields": {
+        "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."}
+      }
+    },
+    "submit_excuse": {
+      "name": "Submit online excuse",
+      "description": "Sends a real excuse to DigiKabu. Never runs automatically. Verify the account, date and reason before invoking. On an unknown outcome, check DigiKabu before retrying.",
+      "fields": {
+        "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."},
+        "ab_datum": {"name": "Start date", "description": "Today before 09:00 or tomorrow, using Europe/Berlin school time. The time is normalized to midnight."},
+        "dauer": {"name": "Duration", "description": "1 to 3 days."},
+        "grund": {"name": "Reason", "description": "Optional reason; omitted sends null."}
+      }
+    },
+    "set_email": {
+      "name": "Set email addresses",
+      "description": "Sends both email fields to DigiKabu. Both must be supplied explicitly. In YAML, null sends a nullable value; DigiKabu determines its meaning. No existing-address read endpoint is documented.",
+      "fields": {
+        "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."},
+        "email1": {"name": "First email address", "description": "Explicit first value or null."},
+        "email2": {"name": "Second email address", "description": "Explicit second value or null."}
+      }
+    }
+  }
+}
