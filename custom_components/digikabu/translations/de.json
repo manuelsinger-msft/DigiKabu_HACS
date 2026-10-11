@@ -1,0 +1,102 @@
+{
+  "title": "DigiKabu",
+  "config": {
+    "step": {
+      "user": {
+        "title": "DigiKabu-Schülerkonto",
+        "description": "Gib deine Schüler-Anmeldedaten ein. Es werden nur dokumentierte Schüler-APIs verwendet. Das Passwort wird in Home Assistant gespeichert; API-Tokens bleiben ausschließlich im Arbeitsspeicher.",
+        "data": {
+          "username": "Benutzername",
+          "password": "Passwort",
+          "api_key": "API-Schlüssel (optional)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "DigiKabu erneut authentifizieren",
+        "description": "Gib das Passwort für das bestehende Schülerkonto ein. Ein ausgelassener API-Schlüssel behält den bisherigen Wert.",
+        "data": {
+          "password": "Passwort",
+          "api_key": "API-Schlüssel (optional)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "DigiKabu hat die Anmeldung abgelehnt.",
+      "cannot_connect": "DigiKabu ist nicht erreichbar. Versuche es später erneut.",
+      "invalid_response": "DigiKabu hat ein nicht unterstütztes Antwortformat geliefert. Beachte die dokumentierten Einschränkungen.",
+      "api_error": "Die Schüler-API-Anfrage ist fehlgeschlagen. Prüfe den Zugriff dieses Kontos auf die Fehlzeitenübersicht."
+    },
+    "abort": {
+      "already_configured": "Dieser Benutzername ist bereits eingerichtet.",
+      "reauth_successful": "Die Anmeldedaten wurden aktualisiert."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "absences": {"name": "Fehlzeiten aktualisiert"},
+      "timetable": {"name": "Stundenplan aktualisiert"},
+      "exams": {"name": "Schulaufgaben aktualisiert"},
+      "appointments": {"name": "Termine aktualisiert"}
+    }
+  },
+  "exceptions": {
+    "invalid_excuse_date": {
+      "message": "Eine Entschuldigung muss heute vor 09:00 Uhr oder morgen beginnen (Europe/Berlin). DigiKabu prüft die endgültigen Einschränkungen."
+    },
+    "authentication_failed": {
+      "message": "Die DigiKabu-Anmeldung ist fehlgeschlagen. Authentifiziere dieses Konto erneut in den Einstellungen."
+    }
+  },
+  "services": {
+    "get_absences": {
+      "name": "Fehlzeiten abrufen",
+      "description": "Liest die Fehlzeitenübersicht des Schülers. Die unveränderte JSON-Antwort steht unter data.",
+      "fields": {
+        "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."}
+      }
+    },
+    "get_timetable": {
+      "name": "Eigenen Stundenplan abrufen",
+      "description": "Liest ausschließlich den eigenen Stundenplan. Die unveränderte JSON-Antwort steht unter data.",
+      "fields": {
+        "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."},
+        "datum": {"name": "Startdatum und Uhrzeit", "description": "Optionaler ISO-Zeitpunkt; ohne Angabe verwendet DigiKabu den Standard."},
+        "anzahl": {"name": "Anzahl Tage", "description": "Positive Anzahl Tage ab dem Startdatum."}
+      }
+    },
+    "get_exams": {
+      "name": "Schulaufgaben abrufen",
+      "description": "Liest die Schulaufgaben des angemeldeten Schülers. Die unveränderte JSON-Antwort steht unter data.",
+      "fields": {
+        "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."},
+        "monat": {"name": "Monat", "description": "-1 für den aktuellen Monat; ansonsten 1 bis 12."}
+      }
+    },
+    "get_appointments": {
+      "name": "Termine abrufen",
+      "description": "Liest Termine für den Schüler ohne Lehrer-Abteilungsauswahl. Die unveränderte JSON-Antwort steht unter data.",
+      "fields": {
+        "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."}
+      }
+    },
+    "submit_excuse": {
+      "name": "Online-Entschuldigung absenden",
+      "description": "Sendet eine echte Entschuldigung an DigiKabu. Läuft niemals selbstständig. Prüfe Konto, Datum und Grund vor dem Aufruf. Bei unklarem Ausgang vor einem erneuten Versuch in DigiKabu nachsehen.",
+      "fields": {
+        "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."},
+        "ab_datum": {"name": "Beginn", "description": "Heute vor 09:00 Uhr oder morgen in der Schulzeitzone Europe/Berlin. Die Uhrzeit wird auf Mitternacht gesetzt."},
+        "dauer": {"name": "Dauer", "description": "1 bis 3 Tage."},
+        "grund": {"name": "Grund", "description": "Optionaler Grund; ohne Angabe wird null gesendet."}
+      }
+    },
+    "set_email": {
+      "name": "E-Mail-Adressen setzen",
+      "description": "Sendet beide E-Mail-Felder an DigiKabu. Beide müssen ausdrücklich angegeben werden. In YAML sendet null einen nullable Wert; dessen Bedeutung bestimmt DigiKabu. Eine API zum Lesen bestehender Adressen ist nicht dokumentiert.",
+      "fields": {
+        "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."},
+        "email1": {"name": "Erste E-Mail-Adresse", "description": "Ausdrücklicher erster Wert oder null."},
+        "email2": {"name": "Zweite E-Mail-Adresse", "description": "Ausdrücklicher zweiter Wert oder null."}
+      }
+    }
+  }
+}
