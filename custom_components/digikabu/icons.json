@@ -1,5 +1,9 @@
 {
   "entity": {
+    "calendar": {
+      "exams": {"default": "mdi:clipboard-text"},
+      "appointments": {"default": "mdi:calendar"}
+    },
     "sensor": {
       "absences": {"default": "mdi:account-clock"},
       "timetable": {"default": "mdi:timetable"},

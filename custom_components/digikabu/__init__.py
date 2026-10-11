@@ -19,7 +19,7 @@ from .services import async_setup_services
 from .timetable_cache import TimetableCache
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.CALENDAR]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

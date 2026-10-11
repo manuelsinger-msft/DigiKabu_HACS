@@ -32,6 +32,10 @@
     }
   },
   "entity": {
+    "calendar": {
+      "exams": {"name": "Exams"},
+      "appointments": {"name": "Appointments"}
+    },
     "sensor": {
       "absences": {"name": "Absences updated"},
       "timetable": {"name": "Timetable updated"},

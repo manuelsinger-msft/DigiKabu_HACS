@@ -32,6 +32,10 @@
     }
   },
   "entity": {
+    "calendar": {
+      "exams": {"name": "Schulaufgaben"},
+      "appointments": {"name": "Termine"}
+    },
     "sensor": {
       "absences": {"name": "Fehlzeiten aktualisiert"},
       "timetable": {"name": "Stundenplan aktualisiert"},

@@ -73,6 +73,29 @@ Zusätzlich gibt es **Card-Stundenplan Woche 1** und **Card-Stundenplan Woche 2*
 Diese werden ausschließlich durch `digikabu.get_card_timetable` befüllt,
 nicht durch das reguläre Polling. Details und Dashboard-Konfiguration siehe unten.
 
+### Kalender für Schulaufgaben und Termine
+
+Pro Konto stehen zusätzlich zwei **schreibgeschützte Kalender** für
+**Schulaufgaben** und **Termine** bereit. Diese lassen sich beispielsweise
+mit [Calendar Card Pro](https://github.com/alexpfau/calendar-card-pro)
+anzeigen. Die Rohdaten-Sensoren und Leseaktionen bleiben unverändert.
+
+Die Kalender unterstützen die beobachteten Antwortfelder `date` / `info`
+für Schulaufgaben und gleichdatierte Mitternachtswerte `datumVon` /
+`datumBis` mit `hinweis` für Termine. Sie werden als eintägige,
+ganztägige Ereignisse dargestellt. Die Schulaufgaben-API enthält auch
+Ferien und Feiertage; diese werden nicht als Prüfungen umgedeutet oder
+herausgefiltert. Unbekannte Formate, Uhrzeiten oder mehrtägige Terminbereiche
+mit nicht belegter Enddatumssemantik werden ausdrücklich als Fehler gemeldet.
+
+Aktueller Monat und Termine verwenden dieselben 15-Minuten-Abrufe wie die
+Sensoren. Kalenderabfragen laden andere Schulaufgaben-Monate bei Bedarf,
+mit 15 Minuten Zwischenspeicherung pro Monat. Der Server bietet nur einen
+Monats-, keinen Jahresparameter: Angezeigt werden ausschließlich die
+tatsächlich zurückgegebenen Ereignisse im angefragten Datumsbereich.
+Das ist keine Garantie vollständiger Daten für beliebige Jahre.
+Kalenderdaten sind wie Sensorattribute für berechtigte HA-Nutzer sichtbar.
+
 ## Daten gezielt abrufen
 
 Für den Alltag reichen die automatisch aktualisierten Sensoren. Wenn du

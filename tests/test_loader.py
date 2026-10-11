@@ -3,7 +3,7 @@
 import shutil
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from homeassistant import loader
@@ -26,6 +26,8 @@ async def test_real_ha_setup_and_unload(hass, entry, mock_api, session, absences
     )
     loader.async_setup(hass)
     frame.async_setup(hass)
+    hass.config.components.add("http")
+    hass.http = MagicMock()
     entry._async_set_state(hass, ConfigEntryState.NOT_LOADED, None)
     with (
         patch("custom_components.digikabu.DigiKabuApi", return_value=mock_api),
@@ -44,9 +46,17 @@ async def test_real_ha_setup_and_unload(hass, entry, mock_api, session, absences
         sensors = [
             entity
             for entity in registry.entities.values()
-            if entity.config_entry_id == entry.entry_id
+            if entity.config_entry_id == entry.entry_id and entity.domain == "sensor"
         ]
         assert len(sensors) == 6
+        calendars = [
+            entity
+            for entity in registry.entities.values()
+            if entity.config_entry_id == entry.entry_id and entity.domain == "calendar"
+        ]
+        assert len(calendars) == 2
+        for entity in calendars:
+            assert hass.states.get(entity.entity_id).state == "off"
         for entity in sensors:
             state = hass.states.get(entity.entity_id)
             assert state is not None
