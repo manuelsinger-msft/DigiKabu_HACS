@@ -1,7 +1,7 @@
 """Independent polling of each student read endpoint."""
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from homeassistant.config_entries import ConfigEntry
@@ -12,6 +12,7 @@ from homeassistant.util import dt as dt_util
 
 from .api import DigiKabuApi, DigiKabuAuthError, DigiKabuError, JSONValue
 from .const import DOMAIN, UPDATE_INTERVAL
+from .timetable_cache import TimetableCache
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,12 +67,29 @@ class DigiKabuCoordinator(DataUpdateCoordinator[EndpointData]):
         return EndpointData(result, dt_util.utcnow())
 
 
+class DigiKabuCardCoordinator(DataUpdateCoordinator[EndpointData]):
+    """On-demand card data; no additional automatic API requests."""
+
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry, week: int) -> None:
+        self.endpoint = f"card_week_{week}"
+        super().__init__(
+            hass, _LOGGER, config_entry=entry, name=f"{DOMAIN}_{self.endpoint}"
+        )
+
+    async def _async_update_data(self) -> EndpointData:
+        if self.data is None:
+            raise UpdateFailed("First call digikabu.get_card_timetable")
+        return self.data
+
+
 @dataclass
 class DigiKabuData:
     """Runtime objects belonging to one student account."""
 
     client: DigiKabuApi
     coordinators: dict[str, DigiKabuCoordinator]
+    card_coordinators: dict[str, DigiKabuCardCoordinator] = field(default_factory=dict)
+    timetable_cache: TimetableCache | None = None
 
 
 type DigiKabuConfigEntry = ConfigEntry[DigiKabuData]

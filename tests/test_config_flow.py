@@ -24,7 +24,13 @@ def flow_for(hass, **context):
 
 async def test_user_form_and_success(hass, mock_api):
     flow = flow_for(hass)
-    assert (await flow.async_step_user())["type"] == FlowResultType.FORM
+    form = await flow.async_step_user()
+    assert form["type"] == FlowResultType.FORM
+    assert [field.schema for field in form["data_schema"].schema] == [
+        "username",
+        "password",
+        "api_key",
+    ]
     with (
         patch(
             "custom_components.digikabu.config_flow.DigiKabuApi", return_value=mock_api
@@ -88,6 +94,10 @@ async def test_reauth_preserves_account_and_updates_password(hass, entry, mock_a
     ):
         form = await flow.async_step_reauth(entry.data)
         assert form["step_id"] == "reauth_confirm"
+        assert [field.schema for field in form["data_schema"].schema] == [
+            "password",
+            "api_key",
+        ]
         result = await flow.async_step_reauth_confirm(
             {"password": "new-password", "username": "cannot-change-this-account"}
         )

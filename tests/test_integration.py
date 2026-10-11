@@ -25,11 +25,13 @@ from custom_components.digikabu.api import (
 )
 from custom_components.digikabu.const import DOMAIN, ENDPOINTS
 from custom_components.digikabu.coordinator import (
+    DigiKabuCardCoordinator,
     DigiKabuCoordinator,
     DigiKabuData,
     EndpointData,
 )
 from custom_components.digikabu.sensor import DigiKabuSensor
+from custom_components.digikabu.timetable_cache import TimetableCache
 
 
 async def test_setup_and_unload(hass, entry, mock_api):
@@ -120,6 +122,11 @@ async def prepare_services(hass, entry, mock_api):
     entry.runtime_data = DigiKabuData(
         mock_api,
         {key: DigiKabuCoordinator(hass, entry, mock_api, key) for key in ENDPOINTS},
+        {
+            f"card_week_{week}": DigiKabuCardCoordinator(hass, entry, week)
+            for week in (1, 2)
+        },
+        TimetableCache(hass, entry.entry_id),
     )
     await async_setup(hass, {})
     return {"config_entry_id": entry.entry_id}
@@ -239,3 +246,111 @@ async def test_service_auth_failure_requests_reauth(hass, entry, mock_api):
             DOMAIN, "get_absences", data, blocking=True, return_response=True
         )
     reauth.assert_called_once_with(hass)
+
+
+async def test_card_action_publishes_and_clears_second_week(hass, entry, mock_api):
+    data = await prepare_services(hass, entry, mock_api)
+    mock_api.async_get_timetable.return_value = []
+    result = await hass.services.async_call(
+        DOMAIN,
+        "get_card_timetable",
+        {**data, "datum": "2026-10-14T00:00:00", "weeks": 2},
+        blocking=True,
+        return_response=True,
+    )
+    start, days = mock_api.async_get_timetable.call_args.args
+    assert start.isoformat() == "2026-10-12T00:00:00+02:00"
+    assert days == 12
+    cards = entry.runtime_data.card_coordinators
+    assert cards["card_week_1"].data.response == result["data"]["weeks"][0]
+    assert cards["card_week_2"].data.response == result["data"]["weeks"][1]
+    assert all(card.update_interval is None for card in cards.values())
+    await hass.services.async_call(
+        DOMAIN,
+        "get_card_timetable",
+        {**data, "datum": "2026-10-14T00:00:00", "weeks": 1},
+        blocking=True,
+        return_response=True,
+    )
+    assert mock_api.async_get_timetable.call_args.args[1] == 5
+    assert cards["card_week_2"].data.response is None
+    assert not DigiKabuSensor(entry, cards["card_week_2"]).available
+
+
+async def test_card_failure_preserves_previous_data(hass, entry, mock_api):
+    data = await prepare_services(hass, entry, mock_api)
+    mock_api.async_get_timetable.return_value = []
+    fields = {**data, "datum": "2026-10-12T00:00:00", "weeks": 2}
+    await hass.services.async_call(
+        DOMAIN, "get_card_timetable", fields, blocking=True, return_response=True
+    )
+    cards = entry.runtime_data.card_coordinators
+    previous = [card.data for card in cards.values()]
+    mock_api.async_get_timetable.return_value = [{"unexpected": "shape"}]
+    with pytest.raises(HomeAssistantError):
+        await hass.services.async_call(
+            DOMAIN, "get_card_timetable", fields, blocking=True, return_response=True
+        )
+    assert [card.data for card in cards.values()] == previous
+
+
+@pytest.mark.parametrize("weeks", [0, 3, True, 1.5])
+async def test_card_week_count_schema(hass, entry, mock_api, weeks):
+    data = await prepare_services(hass, entry, mock_api)
+    with pytest.raises(probatio.Invalid):
+        await hass.services.async_call(
+            DOMAIN,
+            "get_card_timetable",
+            {**data, "weeks": weeks},
+            blocking=True,
+            return_response=True,
+        )
+    mock_api.async_get_timetable.assert_not_awaited()
+
+
+async def test_card_group_and_no_background_requests(hass, entry, mock_api):
+    data = await prepare_services(hass, entry, mock_api)
+    mock_api.async_get_timetable.return_value = [
+        {
+            "datum": "12.10.2026",
+            "anfStd": 1,
+            "endStd": 1,
+            "uFachBez": "Visible",
+            "gruppe": "1/2",
+        },
+        {
+            "datum": "12.10.2026",
+            "anfStd": 1,
+            "endStd": 1,
+            "uFachBez": "Other",
+            "gruppe": "2/2",
+        },
+    ]
+    result = await hass.services.async_call(
+        DOMAIN,
+        "get_card_timetable",
+        {**data, "datum": "2026-10-12T00:00:00", "gruppe": " 1/2 "},
+        blocking=True,
+        return_response=True,
+    )
+    assert result["data"]["weeks"][0]["rows"][0]["cells"][0] == "Visible\n1/2"
+    card = entry.runtime_data.card_coordinators["card_week_1"]
+    remove = card.async_add_listener(lambda: None)
+    assert card._unsub_refresh is None
+    await card.async_refresh()
+    mock_api.async_get_timetable.assert_awaited_once()
+    remove()
+    assert entry.runtime_data.coordinators["timetable"].data is None
+
+
+async def test_empty_card_group_rejected(hass, entry, mock_api):
+    data = await prepare_services(hass, entry, mock_api)
+    with pytest.raises(probatio.Invalid):
+        await hass.services.async_call(
+            DOMAIN,
+            "get_card_timetable",
+            {**data, "gruppe": " "},
+            blocking=True,
+            return_response=True,
+        )
+    mock_api.async_get_timetable.assert_not_awaited()

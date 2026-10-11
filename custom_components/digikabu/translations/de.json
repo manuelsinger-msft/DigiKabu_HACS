@@ -36,7 +36,9 @@
       "absences": {"name": "Fehlzeiten aktualisiert"},
       "timetable": {"name": "Stundenplan aktualisiert"},
       "exams": {"name": "Schulaufgaben aktualisiert"},
-      "appointments": {"name": "Termine aktualisiert"}
+      "appointments": {"name": "Termine aktualisiert"},
+      "card_week_1": {"name": "Card-Stundenplan Woche 1"},
+      "card_week_2": {"name": "Card-Stundenplan Woche 2"}
     }
   },
   "exceptions": {
@@ -62,6 +64,16 @@
         "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."},
         "datum": {"name": "Startdatum und Uhrzeit", "description": "Optionaler ISO-Zeitpunkt; ohne Angabe verwendet DigiKabu den Standard."},
         "anzahl": {"name": "Anzahl Tage", "description": "Positive Anzahl Tage ab dem Startdatum."}
+      }
+    },
+    "get_card_timetable": {
+      "name": "Card-Stundenplan abrufen",
+      "description": "Bereitet Montag bis Freitag für stundenplan-card auf und aktualisiert die zwei Card-Sensoren auf Abruf. Verwendet Wiesauer Unterrichtszeiten mit Pause von 10:00-10:15. Speichert vorherige Card-Abrufe zum Erkennen von Änderungen und Entfall, nicht als offizielle API-Statusmeldungen. Liefert data.weeks.",
+      "fields": {
+        "config_entry_id": {"name": "Schülerkonto", "description": "Zu verwendender DigiKabu-Konfigurationseintrag."},
+        "datum": {"name": "Datum in erster Woche", "description": "Wird auf Montag in Europe/Berlin normalisiert. Ohne Angabe gilt die aktuelle Woche."},
+        "weeks": {"name": "Anzahl Wochen", "description": "1 oder 2 aufeinanderfolgende Wochen. Ein Wochenabruf leert den zweiten Card-Sensor."},
+        "gruppe": {"name": "Gruppe (optional)", "description": "Exakte Gruppe, z. B. 1/2. Gemeinsamer Unterricht (1/1 oder ohne Gruppe) bleibt erhalten. Ohne Angabe werden alle parallelen Gruppen angezeigt."}
       }
     },
     "get_exams": {

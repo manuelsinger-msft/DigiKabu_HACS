@@ -4,12 +4,15 @@
       "absences": {"default": "mdi:account-clock"},
       "timetable": {"default": "mdi:timetable"},
       "exams": {"default": "mdi:clipboard-text"},
-      "appointments": {"default": "mdi:calendar"}
+      "appointments": {"default": "mdi:calendar"},
+      "card_week_1": {"default": "mdi:timetable"},
+      "card_week_2": {"default": "mdi:timetable"}
     }
   },
   "services": {
     "get_absences": {"service": "mdi:account-clock"},
     "get_timetable": {"service": "mdi:timetable"},
+    "get_card_timetable": {"service": "mdi:timetable"},
     "get_exams": {"service": "mdi:clipboard-text"},
     "get_appointments": {"service": "mdi:calendar"},
     "submit_excuse": {"service": "mdi:email-arrow-right"},

@@ -13,7 +13,8 @@ from homeassistant.util import dt as dt_util
 
 from .api import DigiKabuAuthError, DigiKabuError, JSONValue
 from .const import DOMAIN
-from .coordinator import DigiKabuConfigEntry
+from .coordinator import DigiKabuConfigEntry, EndpointData
+from .timetable import week_start
 
 _SCHOOL_TIMEZONE = ZoneInfo("Europe/Berlin")
 _ENTRY_FIELD = {vol.Required("config_entry_id"): cv.string}
@@ -59,6 +60,26 @@ def async_setup_services(hass: HomeAssistant) -> None:
                     response = await client.async_get_timetable(
                         call.data.get("datum"), call.data["anzahl"]
                     )
+                case "get_card_timetable":
+                    start = week_start(call.data.get("datum"))
+                    count = call.data["weeks"]
+                    cache = entry.runtime_data.timetable_cache
+                    if cache is None:
+                        raise HomeAssistantError("DigiKabu timetable cache not loaded")
+                    card_weeks = await cache.async_get_weeks(
+                        client, start, count, call.data.get("gruppe")
+                    )
+                    fetched_at = dt_util.utcnow()
+                    for week, coordinator in enumerate(
+                        entry.runtime_data.card_coordinators.values()
+                    ):
+                        coordinator.async_set_updated_data(
+                            EndpointData(
+                                card_weeks[week] if week < count else None,
+                                fetched_at,
+                            )
+                        )
+                    response = {"weeks": card_weeks}
                 case "get_exams":
                     response = await client.async_get_exams(call.data["monat"])
                 case "get_appointments":
@@ -95,6 +116,13 @@ def async_setup_services(hass: HomeAssistant) -> None:
         "get_timetable": {
             vol.Optional("datum"): cv.datetime,
             vol.Optional("anzahl", default=1): vol.All(_integer, vol.Range(min=1)),
+        },
+        "get_card_timetable": {
+            vol.Optional("datum"): cv.datetime,
+            vol.Optional("weeks", default=1): vol.All(
+                _integer, vol.Range(min=1, max=2)
+            ),
+            vol.Optional("gruppe"): vol.All(cv.string, str.strip, vol.Length(min=1)),
         },
         "get_exams": {
             vol.Optional("monat", default=-1): vol.All(

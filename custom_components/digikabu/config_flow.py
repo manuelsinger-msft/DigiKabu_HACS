@@ -26,14 +26,13 @@ _PASSWORD = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
 
 
 def _schema(username: str | None = None, *, reauth: bool = False) -> vol.Schema:
-    fields = {
-        vol.Required(CONF_PASSWORD): _PASSWORD,
-        vol.Optional(CONF_API_KEY): _PASSWORD,
-    }
+    fields = {}
     if not reauth:
         fields[vol.Required(CONF_USERNAME, default=username or vol.UNDEFINED)] = (
             TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT))
         )
+    fields[vol.Required(CONF_PASSWORD)] = _PASSWORD
+    fields[vol.Optional(CONF_API_KEY)] = _PASSWORD
     return vol.Schema(fields)
 
 

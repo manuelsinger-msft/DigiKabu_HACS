@@ -36,7 +36,9 @@
       "absences": {"name": "Absences updated"},
       "timetable": {"name": "Timetable updated"},
       "exams": {"name": "Exams updated"},
-      "appointments": {"name": "Appointments updated"}
+      "appointments": {"name": "Appointments updated"},
+      "card_week_1": {"name": "Card timetable week 1"},
+      "card_week_2": {"name": "Card timetable week 2"}
     }
   },
   "exceptions": {
@@ -62,6 +64,16 @@
         "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."},
         "datum": {"name": "Start date and time", "description": "Optional ISO datetime; omitted uses DigiKabu's default."},
         "anzahl": {"name": "Number of days", "description": "Positive number of days from the start date."}
+      }
+    },
+    "get_card_timetable": {
+      "name": "Get card timetable",
+      "description": "Prepare Monday-Friday rows for stundenplan-card and update the two on-demand card sensors. Uses Wiesau lesson times with the 10:00-10:15 break. Persists previous card reads to infer changes and cancellations, not official API statuses. Returns data.weeks.",
+      "fields": {
+        "config_entry_id": {"name": "Student account", "description": "DigiKabu configuration entry to use."},
+        "datum": {"name": "Date in first week", "description": "Normalized to Monday in Europe/Berlin. Omitted means the current week."},
+        "weeks": {"name": "Number of weeks", "description": "1 or 2 consecutive weeks. A one-week request clears the second card sensor."},
+        "gruppe": {"name": "Group (optional)", "description": "Exact group, e.g. 1/2. Shared lessons (1/1 or no group) remain. Omit to display all parallel groups."}
       }
     },
     "get_exams": {
