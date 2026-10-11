@@ -1,6 +1,7 @@
 # DigiKabu für Home Assistant
 
 HACS-Custom-Integration für **Home Assistant 2026.10.1** und DigiKabu-Schülerkonten.
+Aktuelle Version: **0.9.1**. Änderungen siehe [Changelog](CHANGELOG.md).
 Die Integration verwendet ausschließlich die unten aufgeführten Schüler-Endpunkte.
 Keine Lehrer-, Klassenlisten- oder fremden Stundenplan-APIs.
 
@@ -19,8 +20,9 @@ und ihre Manifestdateien herunterladen kann.
 Alternativ den Ordner `custom_components/digikabu` nach
 `<HA-Konfiguration>/custom_components/digikabu` kopieren und HA neu starten.
 Kein Eintrag in `configuration.yaml` ist nötig. Es gibt keinen YAML-Konfigurationsmodus.
-Die Veröffentlichung in der allgemeinen HACS-Liste und ein GitHub-Release sind
-nicht Teil dieses Repository-Inhalts.
+Versionierte Downloads stehen unter [GitHub Releases](https://github.com/manuelsinger-msft/DigiKabu_HACS/releases)
+bereit. Die Integration wird über ein benutzerdefiniertes HACS-Repository installiert;
+sie ist nicht in der allgemeinen HACS-Liste enthalten.
 
 Die Einrichtung prüft Anmeldung und Schüler-Fehlzeitenübersicht. Mehrere
 Schülerkonten sind möglich, jeweils als eigener Konfigurationseintrag.
