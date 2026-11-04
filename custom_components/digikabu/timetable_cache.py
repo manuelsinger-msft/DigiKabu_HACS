@@ -11,7 +11,12 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
 from .api import DigiKabuApi, JSONValue
-from .timetable import SCHOOL_TIMEZONE, parse_timetable, render_card_weeks
+from .timetable import (
+    NO_TEACHER_NOTICE,
+    SCHOOL_TIMEZONE,
+    parse_timetable,
+    render_card_weeks,
+)
 
 
 class SlotRecord(TypedDict):
@@ -66,7 +71,8 @@ class TimetableCache:
                     len(parts) != 2
                     or parts[0] not in {str(n) for n in range(1, 11)}
                     or not isinstance(record, dict)
-                    or record.get("status") not in ("", "changed", "cancelled")
+                    or record.get("status")
+                    not in ("", "changed", "cancelled", "cancelled_no_teacher")
                     or not isinstance(record.get("labels"), list)
                     or not record["labels"]
                     or not all(isinstance(label, str) for label in record["labels"])
@@ -104,11 +110,15 @@ class TimetableCache:
                         changed = bool(previous) and (
                             old is None
                             or old["labels"] != labels
-                            or old["status"] == "cancelled"
+                            or old["status"] in ("cancelled", "cancelled_no_teacher")
                         )
                         merged[key] = {
                             "labels": labels,
-                            "status": "changed"
+                            "status": "cancelled_no_teacher"
+                            if all(
+                                label.endswith(NO_TEACHER_NOTICE) for label in labels
+                            )
+                            else "changed"
                             if changed
                             else old["status"]
                             if old

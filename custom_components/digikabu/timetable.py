@@ -9,6 +9,7 @@ from .api import DigiKabuResponseError, JSONValue
 
 SCHOOL_TIMEZONE = ZoneInfo("Europe/Berlin")
 DAYS = ["Mo", "Di", "Mi", "Do", "Fr"]
+NO_TEACHER_NOTICE = "\nEntfall (kein Lehrer eingetragen)"
 LESSON_TIMES = (
     ("08:30", "09:15"),
     ("09:15", "10:00"),
@@ -88,6 +89,8 @@ def parse_timetable(response: JSONValue, start: date, weeks: int) -> TimetableSl
             continue
         details = " / ".join(value for value in (teacher, room, group) if value)
         label = subject + (f"\n{details}" if details else "")
+        if isinstance(item.get("lehrer"), str) and not teacher:
+            label += NO_TEACHER_NOTICE
         for lesson in range(first, last + 1):
             labels = slots.setdefault(day, {}).setdefault(f"{lesson}|{group}", [])
             if label not in labels:
@@ -120,10 +123,16 @@ def render_card_weeks(
             if gruppe and group not in ("", "1/1", gruppe):
                 continue
             status = statuses.get(day, {}).get(key, "")
-            suffix = {
-                "changed": "\nGeaendert seit vorherigem Abruf",
-                "cancelled": "\nEntfallen seit vorherigem Abruf",
-            }.get(status, "")
+            if all(label.endswith(NO_TEACHER_NOTICE) for label in labels):
+                status = "cancelled_no_teacher"
+            suffix = (
+                ""
+                if status == "cancelled_no_teacher"
+                else {
+                    "changed": "\nGeaendert seit vorherigem Abruf",
+                    "cancelled": "\nEntfallen seit vorherigem Abruf",
+                }.get(status, "")
+            )
             cell = (day, int(number))
             cells.setdefault(cell, []).extend(label + suffix for label in labels)
             cell_statuses.setdefault(cell, []).append(status)
@@ -146,13 +155,13 @@ def render_card_weeks(
                     ],
                     "cell_styles": [
                         (
-                            {"bg": "#d32f2f", "color": "#ffffff"}
+                            {"bg": "#d32f2f", "bg_alpha": 1, "color": "#ffffff"}
                             if cell_statuses.get((day, lesson))
                             and all(
-                                status == "cancelled"
+                                status in ("cancelled", "cancelled_no_teacher")
                                 for status in cell_statuses[(day, lesson)]
                             )
-                            else {"bg": "#f9a825", "color": "#000000"}
+                            else {"bg": "#f9a825", "bg_alpha": 1, "color": "#000000"}
                             if any(cell_statuses.get((day, lesson), ()))
                             else None
                         )

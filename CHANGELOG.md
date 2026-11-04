@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.9.2 - 2026-11-04
+
+### Fehlerbehebungen
+
+- API-Basisadresse und Geräte-Konfigurationslinks auf `https://digikabu.de`
+  ohne `www` umgestellt, um den TLS-Zertifikatsfehler der bisherigen Domain
+  zu vermeiden. Die Zertifikatsprüfung bleibt aktiv; Anmeldung und
+  API-Verhalten bleiben unverändert.
+- Bisher nur lokal vorhandene Stundenplan-Anpassungen übernommen:
+  Ein ausdrücklich leeres Lehrerfeld wird bereits beim ersten Abruf als
+  **Entfall (kein Lehrer eingetragen)** rot markiert. Fehlende oder
+  `null`-Lehrerfelder lösen diese Regel nicht aus. Dies ist eine beobachtete
+  Heuristik, keine garantierte DigiKabu-Statusangabe.
+- Dieser Entfallstatus bleibt im Vergleichscache erhalten; wird wieder ein
+  Lehrer eingetragen, erscheint die Stunde als geändert. Vollständig
+  weggefallene alte Positionen bleiben auch bei verschobenem Unterricht als
+  Entfall sichtbar; bei verkürzten Mehrfachstunden nur die entfallenen Positionen.
+- Rote und gelbe Card-Markierungen setzen `bg_alpha: 1` für deckende
+  Hintergrundfarben.
+
+### Dokumentation und Absicherung
+
+- Swagger-Links auf die Domain ohne `www` aktualisiert und Hinweise zu den
+  lokal ergänzten Entfallregeln in die README übernommen.
+- Regressionstests für die HTTPS-Domain und unveränderte TLS-Prüfung sowie
+  für leere Lehrerfelder, wiederkehrende Lehrer und verschobene Stunden.
+- Integrationsmanifest, Projektversion und Lockdatei auf `0.9.2` vereinheitlicht.
+
+Individuelle Tablet-Dashboards und lokale Kartenanpassungen außerhalb dieses
+Repositories bleiben außerhalb des Integrations-Releases. Ein Update der
+laufenden Home-Assistant-Installation erfolgt nicht durch die Veröffentlichung.
+
 ## 0.9.1 - 2026-10-11
 
 ### Neu

@@ -1,7 +1,7 @@
 # DigiKabu für Home Assistant
 
 HACS-Custom-Integration für **Home Assistant 2026.10.1** und DigiKabu-Schülerkonten.
-Aktuelle Version: **0.9.1**. Änderungen siehe [Changelog](CHANGELOG.md).
+Aktuelle Version: **0.9.2**. Änderungen siehe [Changelog](CHANGELOG.md).
 Die Integration verwendet ausschließlich die unten aufgeführten Schüler-Endpunkte.
 Keine Lehrer-, Klassenlisten- oder fremden Stundenplan-APIs.
 
@@ -383,6 +383,16 @@ betroffenen Stunden kennzeichnet und die Pausenzeile unverändert bleibt.
 Nicht abgefragte Tage/Wochen werden nicht als entfallen behandelt.
 
 **Das sind Vergleichsmarkierungen, keine offiziellen DigiKabu-Statusmeldungen.**
+Ein leerer Lehrereintrag wird als **Entfall** angezeigt, auch beim ersten Abruf.
+Diese Regel wurde anhand eines DigiKabu-Webplans bestätigt, ist aber keine
+garantierte API-Statusangabe: Noch nicht zugewiesene Lehrer könnten damit ebenfalls
+als Entfall erscheinen. Die Kennzeichnung nennt deshalb ausdrücklich das leere
+Lehrerfeld.
+Wird eine zuvor belegte Stunde vollständig leer, bleibt sie mit dem bisherigen
+Fach als **Entfall** sichtbar. Das gilt auch, wenn derselbe Unterricht an einer
+anderen Zeitposition auftaucht: Die neue Position kann als Änderung markiert sein,
+während die alte Position weiterhin als Entfall gekennzeichnet wird. Teilweise
+verkürzte Mehrfachstunden werden nur an den weggefallenen Positionen markiert.
 Die API übermittelt in den beobachteten Antworten weder `Änderung` noch
 `entfällt`. Ein entfernter Eintrag kann beispielsweise auch eine korrigierte
 Planung sein. Vor dem ersten gespeicherten Ausgangsplan sind historische
@@ -532,8 +542,8 @@ hinzu; wer solche selbst erstellt, ist für deren Ausführung verantwortlich.
 
 ## Quellen und Kompatibilitätsgrenzen
 
-- [DigiKabu Swagger UI](https://www.digikabu.de/swagger/index.html) und
-  [vollständige OpenAPI-Spezifikation](https://www.digikabu.de/swagger/v1/swagger.json),
+- [DigiKabu Swagger UI](https://digikabu.de/swagger/index.html) und
+  [vollständige OpenAPI-Spezifikation](https://digikabu.de/swagger/v1/swagger.json),
   geprüft am 11.10.2026. Die Spezifikation bezeichnet die API als im Aufbau und
   beschreibt für diese Endpunkte **keine Erfolgs-Antwortschemata**.
 - [HACS integration_blueprint](https://github.com/ludeeus/integration_blueprint/tree/cd399dac2a7e88d899dd62b3f5d8bbf91f1adadd):

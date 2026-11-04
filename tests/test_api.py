@@ -54,6 +54,16 @@ async def test_auth_token_formats(client, quoted):
         assert request.kwargs["timeout"].total == 30
 
 
+async def test_requests_use_canonical_https_domain(client):
+    assert BASE_URL == "https://digikabu.de"
+    with aioresponses() as http:
+        http.post("https://digikabu.de/api/authenticate", payload=TOKEN)
+        http.get("https://digikabu.de/api/schueler/fehlzeiten", payload=[])
+        assert await client.async_get_absences() == []
+        for requests in http.requests.values():
+            assert "ssl" not in requests[0].kwargs
+
+
 async def test_optional_key():
     async with ClientSession() as session:
         client = DigiKabuApi(session, "student", "password", "synthetic-key")

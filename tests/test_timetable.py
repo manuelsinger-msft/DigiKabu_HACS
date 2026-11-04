@@ -87,6 +87,20 @@ def test_empty_weeks_have_full_grid():
                 assert row["cells"] == [""] * 5
 
 
+@pytest.mark.parametrize("missing", [False, True])
+def test_only_explicitly_empty_teacher_is_cancellation(missing):
+    entry = lesson(lehrer=" ")
+    rows = prepare_card_weeks([entry], date(2026, 10, 12), 1)[0]["rows"]
+    assert rows[1]["cell_styles"][0]["bg"] == "#d32f2f"
+    if missing:
+        del entry["lehrer"]
+    else:
+        entry["lehrer"] = None
+    rows = prepare_card_weeks([entry], date(2026, 10, 12), 1)[0]["rows"]
+    assert rows[1]["cell_styles"][0] is None
+    assert "Entfall" not in rows[1]["cells"][0]
+
+
 @pytest.mark.parametrize(
     "response",
     [

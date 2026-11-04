@@ -57,7 +57,11 @@ async def test_change_persists_across_same_reads_and_restart(hass, mock_api):
     result = await fetch(cache, mock_api, changed)
     rows = result[0]["rows"]
     assert "Geaendert seit vorherigem Abruf" in rows[1]["cells"][0]
-    assert rows[1]["cell_styles"][0]["bg"] == "#f9a825"
+    assert rows[1]["cell_styles"][0] == {
+        "bg": "#f9a825",
+        "bg_alpha": 1,
+        "color": "#000000",
+    }
     assert rows[2]["break"] is True
     assert rows[3]["cell_styles"][0]["bg"] == "#f9a825"
     assert await fetch(cache, mock_api, changed) == result
@@ -96,6 +100,68 @@ async def test_partial_range_cancel_and_new_slot(hass, mock_api):
     assert "Geaendert" not in rows[1]["cells"][0]
     assert "Entfallen" in rows[3]["cells"][0]
     assert "Geaendert" in rows[4]["cells"][0]
+
+
+async def test_empty_teacher_cancels_even_on_first_fetch_and_persists(hass, mock_api):
+    cache = TimetableCache(hass, "account")
+    items = [lesson(lehrer="")]
+    result = await fetch(cache, mock_api, items)
+    assert result[0]["rows"][1]["cell_styles"][0]["bg"] == "#d32f2f"
+    assert "Entfall (kein Lehrer eingetragen)" in str(result)
+    assert await fetch(cache, mock_api, items) == result
+    cache = TimetableCache(hass, "account")
+    with patch(
+        "custom_components.digikabu.timetable_cache.dt_util.utcnow",
+        return_value=datetime.fromisoformat("2026-10-11T12:00:00+00:00"),
+    ):
+        await cache.async_load()
+    assert await fetch(cache, mock_api, items) == result
+    restored = await fetch(cache, mock_api, [lesson()])
+    assert "Entfall" not in str(restored)
+    assert "Geaendert" in str(restored)
+
+
+async def test_moved_lesson_keeps_empty_previous_slot_cancelled(hass, mock_api):
+    cache = TimetableCache(hass, "account")
+    await fetch(cache, mock_api, [lesson(anfStd=7, endStd=8)])
+    items = [
+        lesson(anfStd=6, endStd=6),
+        lesson(anfStd=8, endStd=8, lehrer=""),
+    ]
+    result = await fetch(cache, mock_api, items)
+    rows = result[0]["rows"]
+    assert "Geaendert" in rows[6]["cells"][0]
+    assert "Entfallen seit vorherigem Abruf" in rows[7]["cells"][0]
+    assert rows[7]["cell_styles"][0]["bg"] == "#d32f2f"
+    assert rows[8]["cell_styles"][0]["bg"] == "#d32f2f"
+    assert await fetch(cache, mock_api, items) == result
+
+
+async def test_old_cancelled_position_of_changed_moved_lesson_is_preserved(
+    hass, mock_api
+):
+    cache = TimetableCache(hass, "account")
+    label = "Testfach\nTEST / R0 / 1/1"
+    cache.data = {
+        "2026-10-12": {
+            "6|1/1": {"labels": [label], "status": "changed"},
+            "7|1/1": {"labels": [label], "status": "cancelled"},
+            "8|1/1": {"labels": [label], "status": "changed"},
+        }
+    }
+    items = [
+        lesson(anfStd=6, endStd=6),
+        lesson(anfStd=8, endStd=8, lehrer=""),
+    ]
+    result = await fetch(cache, mock_api, items)
+    assert "Entfallen seit vorherigem Abruf" in result[0]["rows"][7]["cells"][0]
+    assert result[0]["rows"][7]["cell_styles"][0]["bg"] == "#d32f2f"
+    assert result[0]["rows"][8]["cell_styles"][0] == {
+        "bg": "#d32f2f",
+        "bg_alpha": 1,
+        "color": "#ffffff",
+    }
+    assert await fetch(cache, mock_api, items) == result
 
 
 async def test_parallel_groups_and_filter_do_not_change_baseline(hass, mock_api):
