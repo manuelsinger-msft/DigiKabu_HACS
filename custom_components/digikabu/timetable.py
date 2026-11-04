@@ -24,6 +24,16 @@ LESSON_TIMES = (
 )
 
 
+def parse_student_date(value: str) -> date:
+    """Parse observed German and US API dates without guessing slash ordering."""
+    for date_format in ("%d.%m.%Y", "%m/%d/%Y"):
+        try:
+            return datetime.strptime(value, date_format).date()
+        except ValueError:
+            continue
+    raise ValueError("Expected DD.MM.YYYY or MM/DD/YYYY")
+
+
 def week_start(datum: datetime | None) -> datetime:
     """Use Monday of the requested week, in school-local time."""
     value = datum or dt_util.utcnow()
@@ -59,10 +69,10 @@ def parse_timetable(response: JSONValue, start: date, weeks: int) -> TimetableSl
             raise DigiKabuResponseError(f"Timetable entry {index} must be an object")
         raw_date = _text(item, "datum", index)
         try:
-            day = datetime.strptime(raw_date, "%d.%m.%Y").date()
+            day = parse_student_date(raw_date)
         except ValueError as err:
             raise DigiKabuResponseError(
-                f"Timetable entry {index}: datum must use DD.MM.YYYY"
+                f"Timetable entry {index}: datum must use DD.MM.YYYY or MM/DD/YYYY"
             ) from err
         if not start <= day < start + timedelta(days=7 * weeks):
             raise DigiKabuResponseError(

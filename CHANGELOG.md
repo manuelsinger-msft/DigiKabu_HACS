@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.3 - 2026-11-04
+
+### Fehlerbehebungen
+
+- Card-Stundenplan und Schulaufgabenkalender unterstützen neben `TT.MM.JJJJ`
+  auch das beobachtete API-Datumsformat `MM/TT/JJJJ`. Antworten mit
+  Schrägstrichen führten bisher zu nicht verfügbaren Card-Sensoren und
+  Prüfungskalendern, obwohl Verbindung und Datenabruf erfolgreich waren.
+- Ein Wechsel zwischen den beiden Antwortformaten erzeugt keine falschen
+  Stundenplan-Änderungsmarkierungen. Ungültige Datumsangaben werden weiterhin
+  ausdrücklich abgewiesen; Termin- und Aktionsparameterformate bleiben gleich.
+- Regressionstests und README für beide Datumsformate ergänzt.
+
 ## 0.9.2 - 2026-11-04
 
 ### Fehlerbehebungen

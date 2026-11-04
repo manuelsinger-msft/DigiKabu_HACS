@@ -20,8 +20,9 @@ from custom_components.digikabu.coordinator import (
 NOW = datetime.fromisoformat("2026-10-11T12:00:00+02:00")
 
 
-def test_observed_exam_and_appointment_shapes():
-    exam = parse_events([{"date": "24.11.2026", "info": "Test exam"}], "exams")[0]
+@pytest.mark.parametrize("exam_date", ["24.11.2026", "11/24/2026"])
+def test_observed_exam_and_appointment_shapes(exam_date):
+    exam = parse_events([{"date": exam_date, "info": "Test exam"}], "exams")[0]
     assert exam.start == date(2026, 11, 24)
     assert exam.end == date(2026, 11, 25)
     appointment = parse_events(
@@ -43,6 +44,8 @@ def test_observed_exam_and_appointment_shapes():
         ({}, "exams"),
         ([{}], "exams"),
         ([{"date": "31.02.2026", "info": "Test"}], "exams"),
+        ([{"date": "02/29/2026", "info": "Test"}], "exams"),
+        ([{"date": "31/10/2026", "info": "Test"}], "exams"),
         ([{"date": "12.10.2026", "info": ""}], "exams"),
         (
             [
@@ -106,6 +109,27 @@ async def test_month_requests_filter_year_and_reuse_cache(hass, entry, mock_api)
         )
         assert mock_api.async_get_exams.await_count == 1
     assert entity.supported_features == 0
+
+
+async def test_us_exam_dates_use_month_first_order(hass, entry, mock_api):
+    entity = calendar(
+        hass,
+        entry,
+        mock_api,
+        "exams",
+        [{"date": "10/12/2026", "info": "Test exam"}],
+    )
+    assert entity.available
+    with (
+        patch("custom_components.digikabu.calendar.dt_util.utcnow", return_value=NOW),
+        patch("custom_components.digikabu.calendar.dt_util.now", return_value=NOW),
+    ):
+        assert entity.event.start == date(2026, 10, 12)
+        events = await entity.async_get_events(
+            hass, NOW, datetime.fromisoformat("2026-10-13T00:00:00+02:00")
+        )
+    assert len(events) == 1
+    assert events[0].end == date(2026, 10, 13)
 
 
 async def test_exclusive_range_and_next_event(hass, entry, mock_api):
