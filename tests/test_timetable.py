@@ -6,7 +6,11 @@ from unittest.mock import patch
 import pytest
 
 from custom_components.digikabu.api import DigiKabuResponseError
-from custom_components.digikabu.timetable import prepare_card_weeks, week_start
+from custom_components.digikabu.timetable import (
+    parse_student_date,
+    prepare_card_weeks,
+    week_start,
+)
 
 
 def lesson(**overrides):
@@ -22,8 +26,9 @@ def lesson(**overrides):
     }
 
 
-def test_rows_split_double_lesson_at_break():
-    original = [lesson()]
+@pytest.mark.parametrize("datum", ["12.10.2026", "10/12/2026"])
+def test_rows_split_double_lesson_at_break(datum):
+    original = [lesson(datum=datum)]
     weeks = prepare_card_weeks(original, date(2026, 10, 12), 1)
     week = weeks[0]
     assert week["dates"] == [
@@ -45,7 +50,30 @@ def test_rows_split_double_lesson_at_break():
         == ["Testfach\nTEST / R0 / 1/1", "", "", "", ""]
     )
     assert rows[0]["cells"] == [""] * 5
-    assert original == [lesson()]
+    assert original == [lesson(datum=datum)]
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("12.10.2026", date(2026, 10, 12)),
+        ("10/12/2026", date(2026, 10, 12)),
+        ("10/26/2026", date(2026, 10, 26)),
+        ("12/31/2026", date(2026, 12, 31)),
+        ("01/01/2027", date(2027, 1, 1)),
+        ("02/29/2028", date(2028, 2, 29)),
+    ],
+)
+def test_observed_date_formats(value, expected):
+    assert parse_student_date(value) == expected
+
+
+@pytest.mark.parametrize(
+    "value", ["", "2026-10-12", "31.02.2026", "02/29/2026", "31/10/2026"]
+)
+def test_invalid_or_unobserved_date_formats(value):
+    with pytest.raises(ValueError):
+        parse_student_date(value)
 
 
 def test_two_weeks_and_parallel_groups():
@@ -110,6 +138,7 @@ def test_only_explicitly_empty_teacher_is_cancellation(missing):
         [None],
         [lesson(datum="2026-10-12")],
         [lesson(datum="31.02.2026")],
+        [lesson(datum="13/10/2026")],
         [lesson(datum="26.10.2026")],
         [lesson(anfStd=True)],
         [lesson(endStd=3.5)],

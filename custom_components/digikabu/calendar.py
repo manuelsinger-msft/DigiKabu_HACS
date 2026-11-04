@@ -15,7 +15,7 @@ from homeassistant.util import dt as dt_util
 from .api import DigiKabuAuthError, DigiKabuError, DigiKabuResponseError, JSONValue
 from .const import BASE_URL, DOMAIN, UPDATE_INTERVAL
 from .coordinator import DigiKabuConfigEntry, DigiKabuCoordinator
-from .timetable import SCHOOL_TIMEZONE
+from .timetable import SCHOOL_TIMEZONE, parse_student_date
 
 _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
@@ -37,7 +37,7 @@ def parse_events(response: JSONValue, endpoint: str) -> list[CalendarEvent]:
                 raw = item.get("date")
                 if not isinstance(raw, str):
                     raise ValueError("Missing date")
-                start = datetime.strptime(raw, "%d.%m.%Y").date()
+                start = parse_student_date(raw)
                 end = start + timedelta(days=1)
             else:
                 raw_start, raw_end = item.get("datumVon"), item.get("datumBis")

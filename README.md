@@ -1,7 +1,7 @@
 # DigiKabu für Home Assistant
 
 HACS-Custom-Integration für **Home Assistant 2026.10.1** und DigiKabu-Schülerkonten.
-Aktuelle Version: **0.9.2**. Änderungen siehe [Changelog](CHANGELOG.md).
+Aktuelle Version: **0.9.3**. Änderungen siehe [Changelog](CHANGELOG.md).
 Die Integration verwendet ausschließlich die unten aufgeführten Schüler-Endpunkte.
 Keine Lehrer-, Klassenlisten- oder fremden Stundenplan-APIs.
 
@@ -477,6 +477,13 @@ Ein erfolgreicher erster Abruf ohne Unterricht ergibt ein leeres Raster;
 bei bereits gespeicherten Stunden können stattdessen Entfallmarkierungen
 erscheinen. Ein abgewiesener API-Zeitraum aktualisiert den Plan nicht.
 Prüfe in diesem Fall die oben dokumentierten Datumsgrenzen.
+
+Die Datumsfelder `datum` im Stundenplan und `date` bei Schulaufgaben werden
+in API-Antworten sowohl als `TT.MM.JJJJ` als auch als `MM/TT/JJJJ` geliefert.
+Bei Schrägstrichen steht der Monat zuerst; beispielsweise bedeutet
+`10/12/2026` den 12. Oktober, nicht den 10. Dezember. Beide Formate werden
+für die Card-Sensoren und den Schulaufgabenkalender unterstützt. Die
+ISO-Datumsparameter der Aktionen und das Terminformat bleiben unverändert.
 
 ### Online-Entschuldigung
 

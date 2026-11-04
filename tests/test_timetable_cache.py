@@ -246,6 +246,13 @@ async def test_reordered_entries_are_not_changes(hass, mock_api):
     assert await fetch(cache, mock_api, list(reversed(entries))) == first
 
 
+async def test_response_date_format_changes_do_not_change_lessons(hass, mock_api):
+    cache = TimetableCache(hass, "account")
+    first = await fetch(cache, mock_api, [lesson()])
+    assert await fetch(cache, mock_api, [lesson(datum="10/12/2026")]) == first
+    assert cache.data["2026-10-12"]["2|1/1"]["status"] == ""
+
+
 async def test_cache_removal_is_account_scoped(hass, mock_api):
     first, second = TimetableCache(hass, "one"), TimetableCache(hass, "two")
     await fetch(first, mock_api, [lesson()])
