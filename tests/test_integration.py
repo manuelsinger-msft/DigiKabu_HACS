@@ -260,7 +260,7 @@ async def test_card_action_publishes_and_clears_second_week(hass, entry, mock_ap
     )
     start, days = mock_api.async_get_timetable.call_args.args
     assert start.isoformat() == "2026-10-12T00:00:00+02:00"
-    assert days == 12
+    assert days == 13
     cards = entry.runtime_data.card_coordinators
     assert cards["card_week_1"].data.response == result["data"]["weeks"][0]
     assert cards["card_week_2"].data.response == result["data"]["weeks"][1]
@@ -272,7 +272,7 @@ async def test_card_action_publishes_and_clears_second_week(hass, entry, mock_ap
         blocking=True,
         return_response=True,
     )
-    assert mock_api.async_get_timetable.call_args.args[1] == 5
+    assert mock_api.async_get_timetable.call_args.args[1] == 6
     assert cards["card_week_2"].data.response is None
     assert not DigiKabuSensor(entry, cards["card_week_2"]).available
 

@@ -1,4 +1,4 @@
-"""Fixtures using real HA 2026.10.1 and mocked external HTTP only."""
+"""Fixtures using real Home Assistant and mocked external HTTP only."""
 
 from types import MappingProxyType
 from unittest.mock import AsyncMock

@@ -85,10 +85,12 @@ class TimetableCache:
         self, client: DigiKabuApi, start: datetime, weeks: int, gruppe: str | None
     ) -> list[dict[str, JSONValue]]:
         async with self.lock:
-            raw = await client.async_get_timetable(start, 7 * (weeks - 1) + 5)
+            days_through_friday = 7 * (weeks - 1) + 5
+            # The API can omit the last day when the request starts at midnight.
+            raw = await client.async_get_timetable(start, days_through_friday + 1)
             incoming = parse_timetable(raw, start.date(), weeks)
             updated = deepcopy(self._prune(self.data))
-            for offset in range(7 * (weeks - 1) + 5):
+            for offset in range(days_through_friday):
                 day = start.date() + timedelta(days=offset)
                 if day.weekday() > 4:
                     continue

@@ -1,28 +1,53 @@
 # DigiKabu für Home Assistant
 
-HACS-Custom-Integration für **Home Assistant 2026.10.1** und DigiKabu-Schülerkonten.
-Aktuelle Version: **0.9.3**. Änderungen siehe [Changelog](CHANGELOG.md).
+Community-Integration für DigiKabu-Schülerkonten in Home Assistant:
+Stundenplan, Schulaufgaben, Termine und Fehlzeitenübersicht.
+Installation über den integrierten **Marketplace ab Home Assistant 2026.11**.
+Aktuelle Version: **0.9.4**. Änderungen siehe [Changelog](CHANGELOG.md).
 Die Integration verwendet ausschließlich die unten aufgeführten Schüler-Endpunkte.
 Keine Lehrer-, Klassenlisten- oder fremden Stundenplan-APIs.
 
 ## Installation
 
-Das Repository muss öffentlich zugänglich sein, damit HACS die Integration
-und ihre Manifestdateien herunterladen kann.
+### Marketplace (Home Assistant 2026.11 oder neuer)
 
-1. In HACS unter **Benutzerdefinierte Repositories** dieses Repository
-   `https://github.com/manuelsinger-msft/DigiKabu_HACS` als **Integration** hinzufügen.
-2. **DigiKabu** herunterladen und Home Assistant neu starten.
-3. Unter **Einstellungen → Geräte & Dienste → Integration hinzufügen → DigiKabu**
-   den Schüler-Benutzernamen und das Passwort eingeben. Einen API-Schlüssel nur
-   angeben, falls DigiKabu einen bereitgestellt hat; der Swagger-Parameter ist optional.
+Der [Marketplace](https://www.home-assistant.io/integrations/marketplace/) ist
+in Home Assistant enthalten. Eine separate HACS-Installation ist nicht nötig.
+DigiKabu wird als benutzerdefiniertes Repository hinzugefügt, nicht als
+offiziell unterstützte Home-Assistant-Integration.
 
-Alternativ den Ordner `custom_components/digikabu` nach
-`<HA-Konfiguration>/custom_components/digikabu` kopieren und HA neu starten.
+1. Öffne als Administrator **Einstellungen → Marketplace** und bestätige bei
+   der ersten Nutzung den Hinweis zu Community-Inhalten.
+2. Wähle **Über Link hinzufügen** (*Add from link*) und gib
+   `https://github.com/manuelsinger-msft/DigiKabu_HACS` ein. Verbinde auf
+   Aufforderung dein GitHub-Konto per Geräteanmeldung. Wähle **Integration**,
+   falls der Marketplace nach dem Typ fragt.
+3. Öffne **DigiKabu** im Marketplace und wähle **Installieren**. Wenn sich
+   die Einrichtung nicht direkt öffnet, gehe zu **Einstellungen → Geräte &
+   Dienste → Integration hinzufügen → DigiKabu**. Starte HA nur dann vorher
+   neu, wenn der Marketplace dazu auffordert.
+4. Gib den DigiKabu-Schüler-Benutzernamen und das Passwort ein. Einen
+   API-Schlüssel brauchst du nur, wenn DigiKabu einen bereitgestellt hat.
+
+Wenn DigiKabu bereits über HACS installiert war, übernimmt der Marketplace
+die Installation und das benutzerdefinierte Repository beim Upgrade von HA.
+Du musst DigiKabu nicht neu hinzufügen oder das Schülerkonto neu einrichten.
+Neue Versionen findest du unter **Einstellungen → Updates**. Nach einem
+Integrationsupdate Home Assistant neu starten.
+
+### Kompatibilität und alternative Installation
+
+- **Mindestversion:** Home Assistant **2026.10.1**. Auf der Reihe **2026.10**
+  kann ein vorhandenes HACS ab **2.0.5** weiterverwendet werden: Das obige
+  Repository unter **Benutzerdefinierte Repositories** als **Integration**
+  hinzufügen, DigiKabu herunterladen, HA neu starten und das Konto wie oben
+  unter **Geräte & Dienste** einrichten.
+- **Manuell:** Den Ordner `custom_components/digikabu` aus einem
+  [GitHub Release](https://github.com/manuelsinger-msft/DigiKabu_HACS/releases)
+  nach `<HA-Konfiguration>/custom_components/digikabu` kopieren, HA neu starten
+  und DigiKabu unter **Geräte & Dienste** hinzufügen.
+
 Kein Eintrag in `configuration.yaml` ist nötig. Es gibt keinen YAML-Konfigurationsmodus.
-Versionierte Downloads stehen unter [GitHub Releases](https://github.com/manuelsinger-msft/DigiKabu_HACS/releases)
-bereit. Die Integration wird über ein benutzerdefiniertes HACS-Repository installiert;
-sie ist nicht in der allgemeinen HACS-Liste enthalten.
 
 Die Einrichtung prüft Anmeldung und Schüler-Fehlzeitenübersicht. Mehrere
 Schülerkonten sind möglich, jeweils als eigener Konfigurationseintrag.
@@ -200,18 +225,17 @@ sequence:
     data:
       config_entry_id: DEIN_KONFIGURATIONSEINTRAG
       datum: "2026-10-12T00:00:00+02:00"
-      anzahl: 5
+      anzahl: 6
     response_variable: stundenplan
 ```
 
-Das Beispiel liest **12. bis 16. Oktober 2026**. Ersetze das Datum für deine
-gewünschte Woche; die weiter unten beschriebenen API-Grenzen gelten dabei.
-`anzahl` zählt **Kalendertage einschließlich des Starttags**, nicht
-Unterrichtstage, und ist eine positive ganze Zahl (Standard `1`).
-Für zwei Wochen von Montag bis zum Freitag der Folgewoche sind es `12`
-Kalendertage. Für ein Stundenplan-Dashboard verwende stattdessen
-`get_card_timetable`: Diese Aktion übernimmt die Aufbereitung und befüllt
-die Card-Sensoren.
+Das Beispiel fragt die Schulwoche **12. bis 16. Oktober 2026** mit einem
+zusätzlichen Kalendertag ab, damit der Freitag auch bei einem Abruf ab
+Mitternacht enthalten ist. Für zwei Wochen wären es entsprechend `13` Tage.
+`anzahl` bezieht sich auf Kalendertage, nicht Unterrichtstage, und ist eine
+positive ganze Zahl (Standard `1`). Für ein Stundenplan-Dashboard verwende
+stattdessen `get_card_timetable`: Diese Aktion berücksichtigt den Zusatztag,
+bereitet die Daten auf und befüllt die Card-Sensoren.
 
 Die vier ursprünglichen Leseaktionen liefern
 `{"data": <ursprüngliche JSON-Antwort>}`. `response_variable` gibt der Antwort
@@ -232,7 +256,7 @@ und die **Abruflänge `anzahl`**:
 | --- | --- |
 | Startdatum in der Vergangenheit | **04.10.2026, 00:00 Uhr** wurde akzeptiert: **−7 Kalendertage** gegenüber dem Testdatum. Der 03.10. und frühere getestete Tage wurden mit HTTP 400 abgewiesen. |
 | Startdatum in der Zukunft | **17.10.2026, exakt 00:00 Uhr** wurde akzeptiert: **+6 Kalendertage**. Schon 00:00:01 Uhr desselben Tages sowie spätere getestete Tage wurden mit HTTP 400 abgewiesen. |
-| Abruflänge | `anzahl: 14` wurde akzeptiert; `anzahl: 15` wurde mit HTTP 400 abgewiesen. `anzahl` zählt Kalendertage einschließlich des Starttags, nicht Unterrichtstage. |
+| Abruflänge | `anzahl: 14` wurde akzeptiert; `anzahl: 15` wurde mit HTTP 400 abgewiesen. `anzahl` bezieht sich auf Kalendertage, nicht Unterrichtstage. Bei Abrufen ab Mitternacht kann der letzte angefragte Tag fehlen. |
 | Gesamter Zeitraum | Start **17.10.2026, 00:00 Uhr** mit `anzahl: 14` lieferte Unterrichtseinträge bis **30.10.2026**, also **+19 Kalendertage** gegenüber dem Testdatum. Die obere Startdatumsgrenze begrenzt somit nicht das Ende des abgerufenen Zeitraums. |
 
 Die Vorzeichen beziehen sich auf den Abstand des Datums zum Testtag:
@@ -278,25 +302,20 @@ zusätzliches Konto bei einem anderen Stundenplananbieter.
 - [Stundenplan-Card: Projekt und offizielle Anleitung](https://github.com/fabel-smith/stundenplan-card)
 - [Aktuelle Veröffentlichung und Downloads](https://github.com/fabel-smith/stundenplan-card/releases/latest)
 
-**Am einfachsten über HACS installieren:**
+**Über den Marketplace installieren (ab HA 2026.11):**
 
-1. Öffne **HACS → Drei-Punkte-Menü → Benutzerdefinierte Repositories**.
-2. Trage `https://github.com/fabel-smith/stundenplan-card` ein und wähle
-   den Typ **Dashboard**. Das ist eine Frontend-Card, keine Integration.
-   Laut Card-Anleitung ist sie derzeit nicht im HACS-Standardkatalog.
-3. Suche in HACS nach **Stundenplan Card** und wähle **Herunterladen**.
-4. Lade Home Assistant im Browser neu. Falls die Card nicht erscheint,
-   aktualisiere den Browser-Cache, beispielsweise mit **Strg + F5**.
-   Für die Card allein ist normalerweise kein HA-Neustart nötig;
-   eine neue Version der DigiKabu-Integration benötigt weiterhin einen Neustart.
+1. Suche unter **Einstellungen → Marketplace** nach **Stundenplan Card**.
+   Falls sie nicht angeboten wird, wähle **Über Link hinzufügen** und gib
+   `https://github.com/fabel-smith/stundenplan-card` ein. Falls nach dem Typ
+   gefragt wird, wähle **Dashboard**, nicht **Integration**.
+2. Wähle **Installieren** und lade Home Assistant im Browser neu. Falls die
+   Card nicht erscheint, lade die Seite ohne Cache neu (z. B. **Strg + F5**).
 
-HACS trägt die Dashboard-Ressource normalerweise automatisch ein.
-Nur falls die Card danach nicht geladen wird, prüfe unter
-**Einstellungen → Dashboards → Ressourcen**, ob
-`/hacsfiles/stundenplan-card/stundenplan-card.js` als **JavaScript-Modul**
-eingetragen ist. Keine zweite identische Ressource anlegen.
-Bei einer manuellen Installation statt HACS folge der offiziellen
-Card-Anleitung; der Ressourcenpfad hängt dann vom Ablageort ab.
+Der Marketplace registriert die Ressource normalerweise automatisch. Bei
+YAML-verwalteten Dashboard-Ressourcen übernimm den Pfad aus dem
+Installationsdialog als **JavaScript-Modul**. Lege keine doppelte Ressource an.
+Für ältere HA-Versionen mit HACS oder für die manuelle Installation folge
+der oben verlinkten Card-Anleitung.
 
 #### DigiKabu-Daten für die Card abrufen
 
@@ -557,7 +576,7 @@ hinzu; wer solche selbst erstellt, ist für deren Ausführung verantwortlich.
   Vorlage für Struktur, Config Flow, Session-Wiederverwendung, Coordinator,
   Runtime-Daten und HACS-/hassfest-Validierung. Demo-Schalter/-Sensoren wurden
   nicht übernommen; die Implementierung ist eigenständig.
-- [HA 2026.10.1](https://github.com/home-assistant/core/tree/2026.10.1) und die
+- [HA 2026.11.2](https://github.com/home-assistant/core/tree/2026.11.2) und die
   offiziellen Entwicklerdokumente für
   [Config Flows](https://developers.home-assistant.io/docs/core/integration/config_flow/),
   [Coordinator](https://developers.home-assistant.io/docs/integration_fetching_data/),
@@ -587,7 +606,7 @@ für diese Custom-Integration, kein offizielles DigiKabu-Logo.
 
 ## Entwicklung
 
-Home Assistant 2026.10.1 benötigt **Python ≥ 3.14.2**, verwendet
+Die Testumgebung mit Home Assistant 2026.11.2 benötigt **Python ≥ 3.14.2**, verwendet
 `probatio` für Schemas und bringt die benötigte `aiohttp`-Version mit.
 Die Integration installiert keine zusätzlichen Laufzeitabhängigkeiten.
 
@@ -598,7 +617,7 @@ uv run ruff check .
 uv run ruff format --check .
 ```
 
-Die Tests verwenden das echte HA-Paket **2026.10.1** und synthetische Antworten:
+Die Tests verwenden das echte HA-Paket **2026.11.2** und synthetische Antworten:
 Authentifizierung, Endpunkt-/Payload-/Parameterverträge, Token-Erneuerung,
 Fehlerpfade, Config Flow/Doubletten/Reauth, Einrichtung/Entladen, Sensoren,
 kontobezogene Aktionen und Entschuldigungsfristen einschließlich Sommerzeit.
