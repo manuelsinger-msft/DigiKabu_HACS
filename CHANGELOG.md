@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.4 - 2026-11-18
+
+- Beschreibung und Installationsanleitung auf den integrierten Marketplace
+  ab Home Assistant 2026.11 umgestellt. Die Testumgebung verwendet jetzt
+  2026.11.2, die Mindestversion bleibt 2026.10.1.
+- Der Card-Stundenplan fragt einen zusätzlichen Kalendertag ab, damit der
+  letzte Freitag nicht durch die beobachtete API-Datumsgrenze fehlt.
+  Anzeige und Vergleichscache bleiben auf die angefragten Schulwochen begrenzt.
+
 ## 0.9.3 - 2026-11-04
 
 ### Fehlerbehebungen

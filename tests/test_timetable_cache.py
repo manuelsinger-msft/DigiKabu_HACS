@@ -39,6 +39,27 @@ async def fetch(cache, client, items, start=START, weeks=1, group=None):
         return await cache.async_get_weeks(client, start, weeks, group)
 
 
+@pytest.mark.parametrize(("weeks", "friday_offset"), [(1, 4), (2, 11)])
+async def test_last_friday_is_included(hass, mock_api, weeks, friday_offset):
+    cache = TimetableCache(hass, "account")
+    friday = START.date() + timedelta(days=friday_offset)
+    saturday = friday + timedelta(days=1)
+
+    async def get_timetable(start, days):
+        # Model the observed API behavior: the final requested day is omitted.
+        return [
+            lesson(datum=day.strftime("%d.%m.%Y"))
+            for day in (friday, saturday)
+            if (day - start.date()).days < days - 1
+        ]
+
+    mock_api.async_get_timetable.side_effect = get_timetable
+    result = await fetch(cache, mock_api, [], weeks=weeks)
+    assert result[-1]["dates"][-1] == friday.isoformat()
+    assert "Testfach" in result[-1]["rows"][1]["cells"][-1]
+    assert saturday.isoformat() not in cache.data
+
+
 async def test_first_nonempty_day_is_baseline(hass, mock_api):
     cache = TimetableCache(hass, "account")
     await fetch(cache, mock_api, [])
